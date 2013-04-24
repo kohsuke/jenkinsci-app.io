@@ -48,7 +48,6 @@ public class KickfolioRecorder extends Recorder {
 
         listener.getLogger().println(String.format("Using %s:%s", x.getUsername(), x.getApiKey()));
 
-
         return true;
     }
 
