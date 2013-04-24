@@ -6,6 +6,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -21,6 +22,11 @@ import java.util.List;
  */
 public class KickfolioRecorder extends Recorder {
     private String ipaFile;
+
+    @Override
+    public Action getProjectAction(AbstractProject<?, ?> project) {
+        return new KickfolioProjectAction();
+    }
 
     @DataBoundConstructor
     public KickfolioRecorder(String ipaFile) {
