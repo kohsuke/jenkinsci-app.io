@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.kickfolio;
 
-import hudson.model.Action;
 import hudson.model.ProminentProjectAction;
 
 /**

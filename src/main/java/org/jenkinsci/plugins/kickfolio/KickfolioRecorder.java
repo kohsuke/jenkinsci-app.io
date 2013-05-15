@@ -21,20 +21,41 @@ import java.util.List;
  * @author Kohsuke Kawaguchi
  */
 public class KickfolioRecorder extends Recorder {
-    private String ipaFile;
+    private String appFile;
+    private String appName;
+    private String developerName;
+    private String companyName;
 
-    @Override
+    public String getAppName() {
+		return appName;
+	}
+
+	public String getDeveloperName() {
+		return developerName;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	@Override
     public Action getProjectAction(AbstractProject<?, ?> project) {
         return new KickfolioProjectAction();
     }
 
     @DataBoundConstructor
-    public KickfolioRecorder(String ipaFile) {
-        this.ipaFile = ipaFile;
+    public KickfolioRecorder(String ipaFile, 
+    						 String appName, 
+    						 String developerName,
+    						 String companyName) {
+        this.appFile = ipaFile;
+        this.appName = appName;
+		this.developerName = developerName;
+		this.companyName = companyName;
     }
 
-    public String getIpaFile() {
-        return ipaFile;
+    public String getAppFile() {
+        return appFile;
     }
 
     public BuildStepMonitor getRequiredMonitorService() {
@@ -46,7 +67,7 @@ public class KickfolioRecorder extends Recorder {
         listener.getLogger().println("Deploying to Kickfolio!");
 
         // TODO:
-        FilePath ipa = build.getWorkspace().child(ipaFile);
+        FilePath ipa = build.getWorkspace().child(appFile);
         // InputStream is = ipa.read();
 
         List<KickfolioCredentials> c = CredentialsProvider.lookupCredentials(KickfolioCredentials.class, build.getProject());
@@ -66,7 +87,7 @@ public class KickfolioRecorder extends Recorder {
 
         @Override
         public String getDisplayName() {
-            return "Deploy to Kickfoliio";
+            return "Upload to Kickfoliio";
         }
     }
 }

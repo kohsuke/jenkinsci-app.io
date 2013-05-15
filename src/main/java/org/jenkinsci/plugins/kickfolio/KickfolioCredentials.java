@@ -7,10 +7,15 @@ import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * @author Kohsuke Kawaguchi
+ * @author Kohsuke Kawaguchi, Mark Prichard
  */
 public class KickfolioCredentials extends BaseCredentials {
-    private final String username;
+ 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final String username;
     private final Secret apiKey;
 
     @DataBoundConstructor
