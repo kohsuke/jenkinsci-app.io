@@ -4,22 +4,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class KickfolioApps {
-    KickfolioApp[] apps;
+    KickfolioAppObject[] apps;
 
     public KickfolioApps() {
         super();
     }
 
-    public KickfolioApps(KickfolioApp[] apps) {
+    public KickfolioApps(KickfolioAppObject[] apps) {
         super();
         this.apps = apps;
     }
 
-    public KickfolioApp[] getApps() {
+    public KickfolioAppObject[] getApps() {
         return apps;
     }
 
-    public void setApps(KickfolioApp[] apps) {
+    public void setApps(KickfolioAppObject[] apps) {
         this.apps = apps;
     }
 }

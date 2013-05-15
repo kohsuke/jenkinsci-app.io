@@ -66,27 +66,27 @@ public class EndToEndTest {
             httpPost.addHeader("Content-Type", "application/json");
             httpPost.addHeader("Accept", kickfolio_v1);
 
-            KickfolioApp kickfolioApp = new KickfolioApp();
-            kickfolioApp.setName("Stockfish");
+            KickfolioAppObject kickfolioAppObj = new KickfolioAppObject();
+            kickfolioAppObj.setName("Stockfish");
 
             // We want to exclude all non-annotated fields
             Gson gson = new GsonBuilder()
                     .excludeFieldsWithoutExposeAnnotation().create();
             StringEntity postBody = new StringEntity("{\"app\":"
-                    + gson.toJson(kickfolioApp) + "}",
+                    + gson.toJson(kickfolioAppObj) + "}",
                     ContentType.create("application/json", "UTF-8"));
             httpPost.setEntity(postBody);
             response = httpClient.execute(httpHost, httpPost);
             String jsonKickfolioApp = handler.handleResponse(response);
             System.out.println("jsonKickfolioApp: " + jsonKickfolioApp);
 
-            kickfolioApp = new Gson()
+            KickfolioApp kickfolioApp = new Gson()
                     .fromJson(jsonKickfolioApp, KickfolioApp.class);
 
             // kickfolio_appid has the app_id we want
-            String kickfolio_appid = kickfolioApp.getId();
-            System.out.println(kickfolioApp.getId() + " : "
-                    + kickfolioApp.getName());
+            String kickfolio_appid = kickfolioApp.getApp().getId();
+            System.out.println(kickfolioApp.getApp().getId() + " : "
+                    + kickfolioApp.getApp().getName());
 
             HttpGet httpGet = new HttpGet("/api/apps");
             httpGet.addHeader("Authorization", kickfolioAuth);
@@ -97,10 +97,11 @@ public class EndToEndTest {
 
             KickfolioApps kickfolioApps = new Gson()
                     .fromJson(jsonKickfolioApps, KickfolioApps.class);
-            List<KickfolioApp> list = Arrays.asList(kickfolioApps.getApps());
-            Iterator<KickfolioApp> iterator = list.iterator();
+            List<KickfolioAppObject> list = Arrays.asList(kickfolioApps
+                    .getApps());
+            Iterator<KickfolioAppObject> iterator = list.iterator();
             while (iterator.hasNext()) {
-                KickfolioApp app = iterator.next();
+                KickfolioAppObject app = iterator.next();
                 System.out.println(app.getId());
                 System.out.println(app.getName());
                 System.out.println(app.getPublic_key());
