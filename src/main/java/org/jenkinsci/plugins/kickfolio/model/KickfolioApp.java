@@ -2,8 +2,11 @@ package org.jenkinsci.plugins.kickfolio.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.gson.annotations.Expose;
+
 @XmlRootElement
 public class KickfolioApp {
+    @Expose
     private KickfolioAppObject app;
 
     public KickfolioApp() {

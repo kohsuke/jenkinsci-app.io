@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.kickfolio.model;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -66,34 +68,43 @@ public class EndToEndTest {
             httpPost.addHeader("Content-Type", "application/json");
             httpPost.addHeader("Accept", kickfolio_v1);
 
+            // Create Kickfolio App object
             KickfolioAppObject kickfolioAppObj = new KickfolioAppObject();
             kickfolioAppObj.setName("Stockfish");
 
             // We want to exclude all non-annotated fields
             Gson gson = new GsonBuilder()
                     .excludeFieldsWithoutExposeAnnotation().create();
-            StringEntity postBody = new StringEntity("{\"app\":"
-                    + gson.toJson(kickfolioAppObj) + "}",
+
+            // Construct {"app": ... } message body
+            KickfolioApp theApp = new KickfolioApp();
+            theApp.setApp(kickfolioAppObj);
+            StringEntity postBody = new StringEntity(gson.toJson(theApp),
                     ContentType.create("application/json", "UTF-8"));
             httpPost.setEntity(postBody);
+            System.out.println("Request: " + postBody);
+
+            // Call Kickfolio REST API to create the new app
             response = httpClient.execute(httpHost, httpPost);
             String jsonKickfolioApp = handler.handleResponse(response);
-            System.out.println("jsonKickfolioApp: " + jsonKickfolioApp);
+            System.out.println("Response: " + jsonKickfolioApp);
 
+            // Get JSON data from the HTTP Response
             KickfolioApp kickfolioApp = new Gson()
                     .fromJson(jsonKickfolioApp, KickfolioApp.class);
 
             // kickfolio_appid has the app_id we want
             String kickfolio_appid = kickfolioApp.getApp().getId();
-            System.out.println(kickfolioApp.getApp().getId() + " : "
-                    + kickfolioApp.getApp().getName());
+            System.out.println("kickfolio_appid: " + kickfolio_appid);
 
+            // Get all apps from Kickfolio REST API
             HttpGet httpGet = new HttpGet("/api/apps");
             httpGet.addHeader("Authorization", kickfolioAuth);
             httpGet.addHeader("Accept", kickfolio_v1);
-            response = httpClient.execute(httpHost, httpGet); //
+
+            response = httpClient.execute(httpHost, httpGet);
             String jsonKickfolioApps = handler.handleResponse(response);
-            System.out.println("jsonKickfolioApps: " + jsonKickfolioApps);
+            System.out.println("Response: " + jsonKickfolioApps);
 
             KickfolioApps kickfolioApps = new Gson()
                     .fromJson(jsonKickfolioApps, KickfolioApps.class);
@@ -107,23 +118,39 @@ public class EndToEndTest {
                 System.out.println(app.getPublic_key());
             }
 
-            // KickfolioAppVersion newVersion = new KickfolioAppVersion(
-            // kickfolioApps.getApps()[0].getId(), url);
-            // System.out.println(new Gson().toJson(newVersion));
+            // Add urlFilePicker as a new version to kickfolio_appid
+            KickfolioVersionObject versionObj = new KickfolioVersionObject();
+            versionObj.setApp_id(kickfolio_appid);
+            versionObj.setBundle_url(urlFilepicker);
 
-            // httpPost = new HttpPost("/api/versions");
-            // httpPost.addHeader("Authorization", kickfolioAuth);
-            // httpPost.addHeader("Accept", kickfolio_v1);
-            // StringEntity reqBody = new StringEntity(
-            // new Gson().toJson(newVersion),
-            // ContentType.create("application/json", "UTF-8"));
-            // httpPost.setEntity(reqBody);
-            // response = httpClient.execute(httpHost, httpPost);
-            // System.out.println(handler.handleResponse(response));
+            // Construct {"version": ... } message body
+            KickfolioVersion newVersion = new KickfolioVersion();
+            newVersion.setVersion(versionObj);
+            System.out.println("Request: " + new Gson().toJson(newVersion));
+
+            // Send new version REST call to Kickfolio
+            httpPost = new HttpPost("/api/versions");
+            httpPost.addHeader("Authorization", kickfolioAuth);
+            httpPost.addHeader("Accept", kickfolio_v1);
+            StringEntity reqBody = new StringEntity(
+                    new Gson().toJson(newVersion),
+                    ContentType.create("application/json", "UTF-8"));
+            httpPost.setEntity(reqBody);
+            response = httpClient.execute(httpHost, httpPost);
+
+            String jsonKickfolioVersion = handler.handleResponse(response);
+            System.out.println("Response: " + jsonKickfolioVersion);
+
+            newVersion = new Gson()
+                    .fromJson(jsonKickfolioVersion, KickfolioVersion.class);
+            System.out.println(newVersion.getVersion().getId());
+            System.out.println(newVersion.getVersion().getApp_id());
 
         } catch (ClientProtocolException e) {
+            fail(e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
+            fail(e.getMessage());
             e.printStackTrace();
         } finally {
             try {
