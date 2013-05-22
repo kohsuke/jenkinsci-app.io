@@ -6,6 +6,9 @@ import static org.junit.Assert.fail;
 
 import java.util.UUID;
 
+import org.apache.http.HttpHost;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.jenkinsci.plugins.kickfolio.model.KickfolioAppObject;
 import org.jenkinsci.plugins.kickfolio.model.KickfolioVersionObject;
 import org.junit.Test;
@@ -19,23 +22,42 @@ public class KickfolioServiceTest {
     private final String filePath = "/Users/markprichard/Documents/Kickfolio/StockFish.zip";
     private final String fpApiKey = "AM5ozphAqSNKD6vhNfBivz";
 
-    // For chained tests
-    private KickfolioAppObject testAppObject = new KickfolioAppObject();
-    private KickfolioVersionObject testVersionObject = new KickfolioVersionObject();
+    // Utility to delete apps after test cases
+    public void deleteApp(String appId, String apiKey) {
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        HttpHost httpHost = new HttpHost("kickfolio.com", 443, "https");
+        HttpDelete httpDelete = new HttpDelete("/api/apps" + "/" + appId);
+
+        String kickfolioAuth = "Basic " + apiKey;
+        httpDelete.addHeader("Authorization", kickfolioAuth);
+        httpDelete.addHeader("Content-Type", "application/json");
+        try {
+            httpClient.execute(httpHost, httpDelete);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                httpClient.getConnectionManager().shutdown();
+            } catch (Exception ignore) {
+            }
+        }
+    }
 
     @Test
     public void createApp() {
-        KickfolioAppObject result = null;
+        KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
         try {
-            result = testService.createApp(appName, apiKey);
-            testAppObject = result;
-            System.out
-                    .println(result.getName() + ", " + result.getPublic_key());
+            // Create a new Kickfolio app
+            testAppObject = testService.createApp(appName, apiKey);
 
             // Quick test for valid UUID
-            UUID uid = UUID.fromString(result.getId());
-            assertEquals(uid.toString().equals(result.getId()), true);
+            UUID uid = UUID.fromString(testAppObject.getId());
+            assertEquals(uid.toString().equals(testAppObject.getId()), true);
+
+            // Cleanup: delete the app object
+            deleteApp(testAppObject.getId(), apiKey);
+
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -43,15 +65,14 @@ public class KickfolioServiceTest {
 
     @Test
     public void createAppBadKey() {
-        KickfolioAppObject result = null;
+        KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
         try {
-            result = testService.createApp(appName, badKey);
-            System.out.println(result);
+            testAppObject = testService.createApp(appName, badKey);
 
             // Quick test for valid UUID
-            UUID uid = UUID.fromString(result.getId());
-            assertEquals(uid.toString().equals(result.getId()), true);
+            UUID uid = UUID.fromString(testAppObject.getId());
+            assertEquals(uid.toString().equals(testAppObject.getId()), true);
         } catch (Exception e) {
             assertTrue(e.getMessage(), true);
         }
@@ -59,16 +80,23 @@ public class KickfolioServiceTest {
 
     @Test
     public void findApp() {
-        KickfolioAppObject result = null;
+        KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
         try {
-            result = testService.findApp(appName, apiKey);
-            System.out.println(result.getId());
-            System.out.println(result.getPublic_key());
+            // Create a new Kickfolio app
+            testAppObject = testService.createApp(appName, apiKey);
 
-            // Quick test for valid UUID
-            UUID uid = UUID.fromString(result.getId());
-            assertEquals(uid.toString().equals(result.getId()), true);
+            // Find the newly-created app
+            testAppObject = testService.findApp(appName, apiKey);
+
+            // Quick test for valid UUID and appName
+            UUID uid = UUID.fromString(testAppObject.getId());
+            assertEquals(uid.toString().equals(testAppObject.getId()), true);
+            assertEquals(testAppObject.getName(), appName);
+
+            // Cleanup: delete the app
+            deleteApp(testAppObject.getId(), apiKey);
+
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -76,11 +104,11 @@ public class KickfolioServiceTest {
 
     @Test
     public void findAppNotFound() {
-        KickfolioAppObject result = null;
+        KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
         try {
-            result = testService.findApp(badName, apiKey);
-            assertEquals(result.getId(), null);
+            testAppObject = testService.findApp(badName, apiKey);
+            assertEquals(testAppObject.getId(), null);
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -88,11 +116,11 @@ public class KickfolioServiceTest {
 
     @Test
     public void findAppBadKey() {
-        KickfolioAppObject result = null;
+        KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
         try {
-            result = testService.findApp(appName, badKey);
-            assertEquals(result.getId(), null);
+            testAppObject = testService.findApp(appName, badKey);
+            assertEquals(testAppObject.getId(), null);
         } catch (Exception e) {
             assertTrue(e.getMessage(), true);
         }
@@ -119,6 +147,9 @@ public class KickfolioServiceTest {
             testAppObject = testService.findApp(appName, apiKey);
             assertEquals(testAppObject.getId(), testVersionObject.getApp_id());
             assertEquals(testAppObject.getVersion_ids()[0], testVersionObject.getId());
+
+            // Cleanup: delete the app object
+            deleteApp(testAppObject.getId(), apiKey);
 
         } catch (Exception e) {
             fail(e.getMessage());

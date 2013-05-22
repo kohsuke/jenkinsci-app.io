@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.kickfolio;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -16,7 +17,27 @@ import org.jenkinsci.plugins.kickfolio.model.Filepicker;
 
 import com.google.gson.Gson;
 
-public class FilepickerService {
+public class FilepickerService implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private Logger logger = null;
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    static interface Logger {
+        void logDebug(String message);
+    }
+
+    private void logDebug(String message) {
+        if (logger != null) {
+            logger.logDebug(message);
+        } else {
+            System.out.println(message);
+        }
+    }
+
     public String getUploadURL(String filePath, String apiKey) throws Exception {
         Filepicker filepicker = null;
         DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -33,9 +54,12 @@ public class FilepickerService {
 
             ResponseHandler<String> handler = new BasicResponseHandler();
             HttpResponse response = httpClient.execute(httpHost, httpPost);
+            String filepickerResponse = handler.handleResponse(response);
+            logDebug("FilepickerService.getUploadURL() Response: "
+                    + filepickerResponse);
 
             filepicker = new Gson()
-                    .fromJson(handler.handleResponse(response), Filepicker.class);
+                    .fromJson(filepickerResponse, Filepicker.class);
 
         } catch (ClientProtocolException e) {
             throw e;

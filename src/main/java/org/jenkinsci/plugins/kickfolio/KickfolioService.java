@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.kickfolio;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -22,14 +23,33 @@ import org.jenkinsci.plugins.kickfolio.model.KickfolioVersionObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class KickfolioService {
+public class KickfolioService implements Serializable {
 
+    private static final long serialVersionUID = 1L;
     private final HttpHost httpHost = new HttpHost("kickfolio.com", 443,
             "https");
     private final HttpPost httpPost = new HttpPost("/api/apps");
     private final HttpPost httpPostVersions = new HttpPost("/api/versions");
     private final HttpGet httpGet = new HttpGet("/api/apps");
     private final String kickfolio_v1 = "application/vnd.kickfolio.v1";
+
+    private Logger logger = null;
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    static interface Logger {
+        void logDebug(String message);
+    }
+
+    private void logDebug(String message) {
+        if (logger != null) {
+            logger.logDebug(message);
+        } else {
+            System.out.println(message);
+        }
+    }
 
     public KickfolioAppObject createApp(String appName, String apiKey) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -59,12 +79,14 @@ public class KickfolioService {
             StringEntity postBody = new StringEntity(gson.toJson(theApp),
                     ContentType.create("application/json", "UTF-8"));
             httpPost.setEntity(postBody);
-            System.out.println("Request: " + gson.toJson(theApp));
+            logDebug("KickfolioService.createApp() Request: "
+                    + gson.toJson(theApp));
 
             // Call Kickfolio REST API to create the new app
             HttpResponse response = httpClient.execute(httpHost, httpPost);
             String jsonKickfolioApp = handler.handleResponse(response);
-            System.out.println("Response: " + jsonKickfolioApp);
+            logDebug("KickfolioService.createApp() Response: "
+                    + jsonKickfolioApp);
 
             // Get JSON data from the HTTP Response
             KickfolioApp kickfolioApp = new Gson()
@@ -95,7 +117,8 @@ public class KickfolioService {
 
             HttpResponse response = httpClient.execute(httpHost, httpGet);
             String jsonKickfolioApps = handler.handleResponse(response);
-            System.out.println("Response: " + jsonKickfolioApps);
+            logDebug("KickfolioService.findApp() Response: "
+                    + jsonKickfolioApps);
 
             KickfolioApps kickfolioApps = new Gson()
                     .fromJson(jsonKickfolioApps, KickfolioApps.class);
@@ -133,7 +156,8 @@ public class KickfolioService {
             versionObj.setApp_id(appId);
             versionObj.setBundle_url(urlUpload);
             newVersion.setVersion(versionObj);
-            System.out.println("Request: " + new Gson().toJson(newVersion));
+            logDebug("KickfolioService.addVersion() Request: "
+                    + new Gson().toJson(newVersion));
 
             // Send new version REST call to Kickfolio
             httpPostVersions.addHeader("Authorization", "Basic " + apiKey);
@@ -147,7 +171,8 @@ public class KickfolioService {
                     .execute(httpHost, httpPostVersions);
 
             String jsonKickfolioVersion = handler.handleResponse(response);
-            System.out.println("Response: " + jsonKickfolioVersion);
+            logDebug("KickfolioService.createApp() Response: "
+                    + jsonKickfolioVersion);
             newVersion = new Gson()
                     .fromJson(jsonKickfolioVersion, KickfolioVersion.class);
 
