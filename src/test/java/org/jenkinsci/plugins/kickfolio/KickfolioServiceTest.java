@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.http.HttpHost;
@@ -14,13 +17,49 @@ import org.jenkinsci.plugins.kickfolio.model.KickfolioVersionObject;
 import org.junit.Test;
 
 public class KickfolioServiceTest {
-    private final String apiKey = "UDFOZG9Gd21MdExIVjlwamtkamg=";
-    private final String appName = "Stockfish";
-    private final String badKey = "foo";
-    private final String badName = "foo";
+    // KickfolioService test variables
+    private String apiKey = null;
+    private String appName = null;
+    private String badKey = null;
+    private String badName = null;
 
-    private final String filePath = "/Users/markprichard/Documents/Kickfolio/StockFish.zip";
-    private final String fpApiKey = "AM5ozphAqSNKD6vhNfBivz";
+    // FilepickerService test variables
+    private String filePath = null;
+    private String fpApiKey = null;
+
+    private Properties testProperties = new Properties();
+
+    public KickfolioServiceTest() {
+        super();
+
+        // Get test properties from classpath
+        loadTestProperties();
+    }
+
+    // Utility to load test properties
+    public void loadTestProperties() {
+        InputStream in = this
+                .getClass()
+                .getClassLoader()
+                .getResourceAsStream("org/jenkinsci/plugins/kickfolio/test.properties");
+        try {
+            testProperties.load(in);
+
+            apiKey = testProperties.getProperty("KickfolioServiceTest.apiKey");
+            appName = testProperties
+                    .getProperty("KickfolioServiceTest.appName");
+            badKey = testProperties.getProperty("KickfolioServiceTest.badKey");
+            badName = testProperties
+                    .getProperty("KickfolioServiceTest.badName");
+            filePath = testProperties
+                    .getProperty("KickfolioServiceTest.filePath");
+            fpApiKey = testProperties
+                    .getProperty("KickfolioServiceTest.fpApiKey");
+
+        } catch (IOException e) {
+            fail();
+        }
+    }
 
     // Utility to delete apps after test cases
     public void deleteApp(String appId, String apiKey) {
@@ -31,6 +70,7 @@ public class KickfolioServiceTest {
         String kickfolioAuth = "Basic " + apiKey;
         httpDelete.addHeader("Authorization", kickfolioAuth);
         httpDelete.addHeader("Content-Type", "application/json");
+
         try {
             httpClient.execute(httpHost, httpDelete);
         } catch (Exception e) {
@@ -47,6 +87,7 @@ public class KickfolioServiceTest {
     public void createApp() {
         KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             // Create a new Kickfolio app
             testAppObject = testService.createApp(appName, apiKey);
@@ -59,7 +100,8 @@ public class KickfolioServiceTest {
             deleteApp(testAppObject.getId(), apiKey);
 
         } catch (Exception e) {
-            fail(e.getMessage());
+            e.printStackTrace();
+            fail();
         }
     }
 
@@ -67,6 +109,7 @@ public class KickfolioServiceTest {
     public void createAppBadKey() {
         KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             testAppObject = testService.createApp(appName, badKey);
 
@@ -82,6 +125,7 @@ public class KickfolioServiceTest {
     public void findApp() {
         KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             // Create a new Kickfolio app
             testAppObject = testService.createApp(appName, apiKey);
@@ -106,6 +150,7 @@ public class KickfolioServiceTest {
     public void findAppNotFound() {
         KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             testAppObject = testService.findApp(badName, apiKey);
             assertEquals(testAppObject.getId(), null);
@@ -118,6 +163,7 @@ public class KickfolioServiceTest {
     public void findAppBadKey() {
         KickfolioAppObject testAppObject = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             testAppObject = testService.findApp(appName, badKey);
             assertEquals(testAppObject.getId(), null);
@@ -128,8 +174,10 @@ public class KickfolioServiceTest {
 
     @Test
     public void addVersion() {
+
         // KickfolioVersionObject result = null;
         KickfolioService testService = new KickfolioService();
+
         try {
             // Upload new bits via Filepicker
             FilepickerService filepicker = new FilepickerService();
