@@ -1,35 +1,34 @@
 package org.jenkinsci.plugins.kickfolio;
 
-import com.cloudbees.plugins.credentials.BaseCredentials;
-import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import hudson.Extension;
 import hudson.util.Secret;
+
 import org.kohsuke.stapler.DataBoundConstructor;
+
+import com.cloudbees.plugins.credentials.CredentialsDescriptor;
+import com.cloudbees.plugins.credentials.BaseCredentials;
 
 /**
  * @author Kohsuke Kawaguchi, Mark Prichard
  */
 public class KickfolioCredentials extends BaseCredentials {
- 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private final String username;
-    private final Secret apiKey;
+
+    private static final long serialVersionUID = 1L;
+    private final String filepickerApiKey;
+    private final Secret kickfolioApiKey;
 
     @DataBoundConstructor
-    public KickfolioCredentials(String username, Secret apiKey) {
-        this.username = username;
-        this.apiKey = apiKey;
+    public KickfolioCredentials(String fpApiKey, Secret kfApiKey) {
+        this.filepickerApiKey = fpApiKey;
+        this.kickfolioApiKey = kfApiKey;
     }
 
-    public String getUsername() {
-        return username;
+    public String getFilepickerApiKey() {
+        return filepickerApiKey;
     }
 
-    public Secret getApiKey() {
-        return apiKey;
+    public Secret getKickfolioApiKey() {
+        return kickfolioApiKey;
     }
 
     @Extension
