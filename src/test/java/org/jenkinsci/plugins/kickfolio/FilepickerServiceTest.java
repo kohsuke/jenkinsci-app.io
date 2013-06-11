@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.jenkinsci.plugins.appio.FilepickerService;
 import org.junit.Test;
 
 public class FilepickerServiceTest {

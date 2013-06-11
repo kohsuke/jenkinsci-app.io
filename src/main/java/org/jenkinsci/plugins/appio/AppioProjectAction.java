@@ -1,15 +1,11 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import hudson.model.ProminentProjectAction;
 
 /**
  * @author Kohsuke Kawaguchi
  */
-public class KickfolioProjectAction implements ProminentProjectAction {
-
-    public int foo(int a, int b) {
-        return a+b;
-    }
+public class AppioProjectAction implements ProminentProjectAction {
 
     public String getIconFileName() {
         return "setting.png";

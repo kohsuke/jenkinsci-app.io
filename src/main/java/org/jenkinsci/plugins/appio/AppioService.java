@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -14,24 +14,23 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioApp;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioAppObject;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioApps;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioVersion;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioVersionObject;
+import org.jenkinsci.plugins.appio.model.AppioApp;
+import org.jenkinsci.plugins.appio.model.AppioAppObject;
+import org.jenkinsci.plugins.appio.model.AppioApps;
+import org.jenkinsci.plugins.appio.model.AppioVersion;
+import org.jenkinsci.plugins.appio.model.AppioVersionObject;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-public class KickfolioService implements Serializable {
+public class AppioService implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final HttpHost httpHost = new HttpHost("kickfolio.com", 443,
-            "https");
+    private final HttpHost httpHost = new HttpHost("app.io", 443, "https");
     private final HttpPost httpPost = new HttpPost("/api/apps");
     private final HttpPost httpPostVersions = new HttpPost("/api/versions");
     private final HttpGet httpGet = new HttpGet("/api/apps");
-    private final String kickfolio_v1 = "application/vnd.kickfolio.v1";
+    private final String appio_v1 = "application/vnd.app.io+json;version=1";
 
     private Logger logger = null;
 
@@ -51,47 +50,44 @@ public class KickfolioService implements Serializable {
         }
     }
 
-    public KickfolioAppObject createApp(String appName, String apiKey) throws Exception {
+    public AppioAppObject createApp(String appName, String apiKey) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
-        KickfolioAppObject theAppObject = new KickfolioAppObject();
+        AppioAppObject theAppObject = new AppioAppObject();
 
         try {
-            // Kickfolio Authorization and Content-Type headers
-            String kickfolioAuth = "Basic " + apiKey;
-            String kickfolio_v1 = "application/vnd.kickfolio.v1";
+            // App.io Authorization and Content-Type headers
+            String appioAuth = "Basic " + apiKey;
 
-            httpPost.addHeader("Authorization", kickfolioAuth);
+            httpPost.addHeader("Authorization", appioAuth);
             httpPost.addHeader("Content-Type", "application/json");
-            httpPost.addHeader("Accept", kickfolio_v1);
+            httpPost.addHeader("Accept", appio_v1);
 
-            // Create Kickfolio App object
-            KickfolioAppObject kickfolioAppObj = new KickfolioAppObject();
-            kickfolioAppObj.setName(appName);
+            // Create App.io App object
+            AppioAppObject appioAppObj = new AppioAppObject();
+            appioAppObj.setName(appName);
 
             // We want to exclude all non-annotated fields
             Gson gson = new GsonBuilder()
                     .excludeFieldsWithoutExposeAnnotation().create();
 
             // Construct {"app": ... } message body
-            KickfolioApp theApp = new KickfolioApp();
-            theApp.setApp(kickfolioAppObj);
+            AppioApp theApp = new AppioApp();
+            theApp.setApp(appioAppObj);
             StringEntity postBody = new StringEntity(gson.toJson(theApp),
                     ContentType.create("application/json", "UTF-8"));
             httpPost.setEntity(postBody);
-            logDebug("KickfolioService.createApp() Request: "
-                    + gson.toJson(theApp));
+            logDebug("AppioService.createApp() Request: " + gson.toJson(theApp));
 
-            // Call Kickfolio REST API to create the new app
+            // Call App.io REST API to create the new app
             HttpResponse response = httpClient.execute(httpHost, httpPost);
-            String jsonKickfolioApp = handler.handleResponse(response);
-            logDebug("KickfolioService.createApp() Response: "
-                    + jsonKickfolioApp);
+            String jsonAppioApp = handler.handleResponse(response);
+            logDebug("AppioService.createApp() Response: " + jsonAppioApp);
 
             // Get JSON data from the HTTP Response
-            KickfolioApp kickfolioApp = new Gson()
-                    .fromJson(jsonKickfolioApp, KickfolioApp.class);
-            theAppObject = kickfolioApp.getApp();
+            AppioApp appioApp = new Gson()
+                    .fromJson(jsonAppioApp, AppioApp.class);
+            theAppObject = appioApp.getApp();
 
         } catch (Exception e) {
             throw e;
@@ -104,31 +100,29 @@ public class KickfolioService implements Serializable {
         return theAppObject;
     }
 
-    public KickfolioAppObject findApp(String appName, String apiKey) throws Exception {
+    public AppioAppObject findApp(String appName, String apiKey) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
-        KickfolioAppObject theApp = new KickfolioAppObject();
+        AppioAppObject theApp = new AppioAppObject();
 
         try {
-            // Kickfolio Authorization and Content-Type headers
-            String kickfolioAuth = "Basic " + apiKey;
-            httpGet.addHeader("Authorization", kickfolioAuth);
-            httpGet.addHeader("Accept", kickfolio_v1);
+            // App.io Authorization and Content-Type headers
+            String appioAuth = "Basic " + apiKey;
+            httpGet.addHeader("Authorization", appioAuth);
+            httpGet.addHeader("Accept", appio_v1);
 
             HttpResponse response = httpClient.execute(httpHost, httpGet);
-            String jsonKickfolioApps = handler.handleResponse(response);
-            logDebug("KickfolioService.findApp() Response: "
-                    + jsonKickfolioApps);
+            String jsonAppioApps = handler.handleResponse(response);
+            logDebug("AppioService.findApp() Response: " + jsonAppioApps);
 
-            KickfolioApps kickfolioApps = new Gson()
-                    .fromJson(jsonKickfolioApps, KickfolioApps.class);
-            List<KickfolioAppObject> list = Arrays.asList(kickfolioApps
-                    .getApps());
-            Iterator<KickfolioAppObject> iterator = list.iterator();
+            AppioApps appioApps = new Gson()
+                    .fromJson(jsonAppioApps, AppioApps.class);
+            List<AppioAppObject> list = Arrays.asList(appioApps.getApps());
+            Iterator<AppioAppObject> iterator = list.iterator();
 
             boolean foundAppName = false;
             while ((iterator.hasNext()) && (!foundAppName)) {
-                KickfolioAppObject thisApp = iterator.next();
+                AppioAppObject thisApp = iterator.next();
                 if (thisApp.getName().equals(appName)) {
                     theApp = thisApp;
                 }
@@ -145,24 +139,24 @@ public class KickfolioService implements Serializable {
         return theApp;
     }
 
-    public KickfolioVersionObject addVersion(String appId, String urlUpload, String apiKey) throws Exception {
+    public AppioVersionObject addVersion(String appId, String urlUpload, String apiKey) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
-        KickfolioVersion newVersion = new KickfolioVersion();
-        KickfolioVersionObject versionObj = new KickfolioVersionObject();
+        AppioVersion newVersion = new AppioVersion();
+        AppioVersionObject versionObj = new AppioVersionObject();
 
         try {
             // Construct {"version": ... } message body
             versionObj.setApp_id(appId);
             versionObj.setBundle_url(urlUpload);
             newVersion.setVersion(versionObj);
-            logDebug("KickfolioService.addVersion() Request: "
+            logDebug("AppioService.addVersion() Request: "
                     + new Gson().toJson(newVersion));
 
-            // Send new version REST call to Kickfolio
+            // Send new version REST call to Appio
             httpPostVersions.addHeader("Authorization", "Basic " + apiKey);
             httpPostVersions.addHeader("Content-Type", "application/json");
-            httpPostVersions.addHeader("Accept", kickfolio_v1);
+            httpPostVersions.addHeader("Accept", appio_v1);
             StringEntity reqBody = new StringEntity(
                     new Gson().toJson(newVersion),
                     ContentType.create("application/json", "UTF-8"));
@@ -170,11 +164,10 @@ public class KickfolioService implements Serializable {
             HttpResponse response = httpClient
                     .execute(httpHost, httpPostVersions);
 
-            String jsonKickfolioVersion = handler.handleResponse(response);
-            logDebug("KickfolioService.createApp() Response: "
-                    + jsonKickfolioVersion);
+            String jsonAppioVersion = handler.handleResponse(response);
+            logDebug("AppioService.createApp() Response: " + jsonAppioVersion);
             newVersion = new Gson()
-                    .fromJson(jsonKickfolioVersion, KickfolioVersion.class);
+                    .fromJson(jsonAppioVersion, AppioVersion.class);
 
         } catch (Exception e) {
             e.getStackTrace();

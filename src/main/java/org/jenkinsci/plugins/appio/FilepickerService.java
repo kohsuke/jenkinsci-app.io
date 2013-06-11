@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.jenkinsci.plugins.kickfolio.model.Filepicker;
+import org.jenkinsci.plugins.appio.model.Filepicker;
 
 import com.google.gson.Gson;
 

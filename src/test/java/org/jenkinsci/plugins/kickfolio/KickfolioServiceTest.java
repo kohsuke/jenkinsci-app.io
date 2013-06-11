@@ -9,15 +9,19 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioAppObject;
-import org.jenkinsci.plugins.kickfolio.model.KickfolioVersionObject;
+import org.jenkinsci.plugins.appio.AppioService;
+import org.jenkinsci.plugins.appio.FilepickerService;
+import org.jenkinsci.plugins.appio.model.AppioAppObject;
+import org.jenkinsci.plugins.appio.model.AppioVersionObject;
 import org.junit.Test;
 
 public class KickfolioServiceTest {
     // KickfolioService test variables
+    private String apiKeyRaw = null;
     private String apiKey = null;
     private String appName = null;
     private String badKey = null;
@@ -45,7 +49,14 @@ public class KickfolioServiceTest {
         try {
             testProperties.load(in);
 
+            apiKeyRaw = testProperties
+                    .getProperty("KickfolioServiceTest.apiKeyRaw");
+            byte[] encodedBytes = Base64.encodeBase64(apiKeyRaw.getBytes());
+            System.out.println("Base64 apiKeyRaw: " + new String(encodedBytes));
+
             apiKey = testProperties.getProperty("KickfolioServiceTest.apiKey");
+            System.out.println("apiKey: " + apiKey);
+
             appName = testProperties
                     .getProperty("KickfolioServiceTest.appName");
             badKey = testProperties.getProperty("KickfolioServiceTest.badKey");
@@ -85,8 +96,8 @@ public class KickfolioServiceTest {
 
     @Test
     public void createApp() {
-        KickfolioAppObject testAppObject = null;
-        KickfolioService testService = new KickfolioService();
+        AppioAppObject testAppObject = null;
+        AppioService testService = new AppioService();
 
         try {
             // Create a new Kickfolio app
@@ -107,8 +118,8 @@ public class KickfolioServiceTest {
 
     @Test
     public void createAppBadKey() {
-        KickfolioAppObject testAppObject = null;
-        KickfolioService testService = new KickfolioService();
+        AppioAppObject testAppObject = null;
+        AppioService testService = new AppioService();
 
         try {
             testAppObject = testService.createApp(appName, badKey);
@@ -123,8 +134,8 @@ public class KickfolioServiceTest {
 
     @Test
     public void findApp() {
-        KickfolioAppObject testAppObject = null;
-        KickfolioService testService = new KickfolioService();
+        AppioAppObject testAppObject = null;
+        AppioService testService = new AppioService();
 
         try {
             // Create a new Kickfolio app
@@ -148,8 +159,8 @@ public class KickfolioServiceTest {
 
     @Test
     public void findAppNotFound() {
-        KickfolioAppObject testAppObject = null;
-        KickfolioService testService = new KickfolioService();
+        AppioAppObject testAppObject = null;
+        AppioService testService = new AppioService();
 
         try {
             testAppObject = testService.findApp(badName, apiKey);
@@ -161,8 +172,8 @@ public class KickfolioServiceTest {
 
     @Test
     public void findAppBadKey() {
-        KickfolioAppObject testAppObject = null;
-        KickfolioService testService = new KickfolioService();
+        AppioAppObject testAppObject = null;
+        AppioService testService = new AppioService();
 
         try {
             testAppObject = testService.findApp(appName, badKey);
@@ -176,7 +187,7 @@ public class KickfolioServiceTest {
     public void addVersion() {
 
         // KickfolioVersionObject result = null;
-        KickfolioService testService = new KickfolioService();
+        AppioService testService = new AppioService();
 
         try {
             // Upload new bits via Filepicker
@@ -184,11 +195,11 @@ public class KickfolioServiceTest {
             String fileUrl = filepicker.getUploadURL(filePath, fpApiKey);
 
             // Create a new Kickfolio app
-            KickfolioAppObject testAppObject = testService
+            AppioAppObject testAppObject = testService
                     .createApp(appName, apiKey);
 
             // Add a new version
-            KickfolioVersionObject testVersionObject = testService
+            AppioVersionObject testVersionObject = testService
                     .addVersion(testAppObject.getId(), fileUrl, apiKey);
 
             // Get app info and check for new version id

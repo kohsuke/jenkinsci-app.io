@@ -1,11 +1,11 @@
-package org.jenkinsci.plugins.kickfolio.model;
+package org.jenkinsci.plugins.appio.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.gson.annotations.Expose;
 
 @XmlRootElement
-public class KickfolioVersionObject {
+public class AppioVersionObject {
 
     private String id = null;
     @Expose

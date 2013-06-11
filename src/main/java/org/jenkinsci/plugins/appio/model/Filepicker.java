@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio.model;
+package org.jenkinsci.plugins.appio.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

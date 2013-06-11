@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import hudson.Extension;
 import hudson.util.Secret;
@@ -11,31 +11,31 @@ import com.cloudbees.plugins.credentials.BaseCredentials;
 /**
  * @author Kohsuke Kawaguchi, Mark Prichard
  */
-public class KickfolioCredentials extends BaseCredentials {
+public class AppioCredentials extends BaseCredentials {
 
     private static final long serialVersionUID = 1L;
-    private final String filepickerApiKey;
-    private final Secret kickfolioApiKey;
+    private final Secret filepickerApiKey;
+    private final Secret appioApiKey;
 
     @DataBoundConstructor
-    public KickfolioCredentials(String fpApiKey, Secret kfApiKey) {
+    public AppioCredentials(Secret fpApiKey, Secret kfApiKey) {
         this.filepickerApiKey = fpApiKey;
-        this.kickfolioApiKey = kfApiKey;
+        this.appioApiKey = kfApiKey;
     }
 
-    public String getFilepickerApiKey() {
+    public Secret getFilepickerApiKey() {
         return filepickerApiKey;
     }
 
-    public Secret getKickfolioApiKey() {
-        return kickfolioApiKey;
+    public Secret getAppioApiKey() {
+        return appioApiKey;
     }
 
     @Extension
     public static class DescriptorImpl extends CredentialsDescriptor {
         @Override
         public String getDisplayName() {
-            return "Kickfolio Credentials";
+            return "App.io Credentials";
         }
     }
 }

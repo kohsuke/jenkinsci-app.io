@@ -1,11 +1,11 @@
-package org.jenkinsci.plugins.kickfolio.model;
+package org.jenkinsci.plugins.appio.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.gson.annotations.Expose;
 
 @XmlRootElement
-public class KickfolioAppObject {
+public class AppioAppObject {
     private String id = null;
     private String user_id = null;
     @Expose
@@ -24,7 +24,7 @@ public class KickfolioAppObject {
     private String updated_at;
     private String[] version_ids;
 
-    public KickfolioAppObject(String id, String user_id, String name,
+    public AppioAppObject(String id, String user_id, String name,
             String public_key, String bundle, String icon,
             boolean default_to_landscape, String device_type,
             String description, Double price, String formatted_price,
@@ -49,7 +49,7 @@ public class KickfolioAppObject {
         this.version_ids = version_ids;
     }
 
-    public KickfolioAppObject() {
+    public AppioAppObject() {
         super();
         // TODO Auto-generated constructor stub
     }

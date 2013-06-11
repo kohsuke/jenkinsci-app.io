@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import hudson.Extension;
 import hudson.FilePath;
@@ -15,6 +15,7 @@ import hudson.tasks.Recorder;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -22,7 +23,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 /**
  * @author Kohsuke Kawaguchi
  */
-public class KickfolioRecorder extends Recorder {
+public class AppioRecorder extends Recorder {
     private String zipFile;
     private String appName;
 
@@ -32,12 +33,11 @@ public class KickfolioRecorder extends Recorder {
 
     @Override
     public Action getProjectAction(AbstractProject<?, ?> project) {
-        return new KickfolioProjectAction();
+        return new AppioProjectAction();
     }
 
     @DataBoundConstructor
-    public KickfolioRecorder(String zipFile, String appName,
-            String developerName, String companyName) {
+    public AppioRecorder(String zipFile, String appName) {
         this.zipFile = zipFile;
         this.appName = appName;
     }
@@ -57,13 +57,16 @@ public class KickfolioRecorder extends Recorder {
         FilePath zipPath = build.getWorkspace().child(zipFile);
         // InputStream is = zipPath.read();
 
-        List<KickfolioCredentials> c = CredentialsProvider
-                .lookupCredentials(KickfolioCredentials.class, build
-                        .getProject());
-        KickfolioCredentials x = c.get(0);
+        List<AppioCredentials> c = CredentialsProvider
+                .lookupCredentials(AppioCredentials.class, build.getProject());
+        AppioCredentials x = c.get(0);
 
-        listener.getLogger().println(String.format("Using %s:%s", x
-                .getFilepickerApiKey(), x.getKickfolioApiKey()));
+        listener.getLogger().println("Filepicker API Key: "
+                + x.getFilepickerApiKey());
+        byte[] encodedBytes = Base64.encodeBase64(x.getAppioApiKey()
+                .getPlainText().getBytes());
+        String appioApiKeyBase64 = new String(encodedBytes);
+        listener.getLogger().println("App.io API key: " + appioApiKeyBase64);
 
         return true;
     }
@@ -77,7 +80,7 @@ public class KickfolioRecorder extends Recorder {
 
         @Override
         public String getDisplayName() {
-            return "Upload to Kickfoliio";
+            return "Upload to App.io";
         }
     }
 }
