@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -10,16 +10,19 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpHost;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.jenkinsci.plugins.appio.AppioService;
-import org.jenkinsci.plugins.appio.FilepickerService;
 import org.jenkinsci.plugins.appio.model.AppioAppObject;
 import org.jenkinsci.plugins.appio.model.AppioVersionObject;
+import org.jenkinsci.plugins.appio.service.AppioService;
+import org.jenkinsci.plugins.appio.service.FilepickerService;
+import org.jenkinsci.plugins.appio.service.S3Service;
 import org.junit.Test;
 
-public class KickfolioServiceTest {
+public class AppioServiceTest {
+
+    // Test properties loaded via getClassLoader().getResourceAsStream()
+    private String propertyPackage = ("org/jenkinsci/plugins/appio/");
+    private String propertyFile = propertyPackage + "test.properties";
+
     // KickfolioService test variables
     private String apiKeyRaw = null;
     private String apiKey = null;
@@ -31,66 +34,42 @@ public class KickfolioServiceTest {
     private String filePath = null;
     private String fpApiKey = null;
 
+    // Amazon S3 test variables
+    private String bucketName = null;
+    private String keyName = null;
+    private String uploadFile = null;
+
     private Properties testProperties = new Properties();
 
-    public KickfolioServiceTest() {
+    public AppioServiceTest() {
         super();
-
-        // Get test properties from classpath
         loadTestProperties();
     }
 
     // Utility to load test properties
     public void loadTestProperties() {
-        InputStream in = this
-                .getClass()
-                .getClassLoader()
-                .getResourceAsStream("org/jenkinsci/plugins/kickfolio/test.properties");
+        InputStream in = this.getClass().getClassLoader()
+                .getResourceAsStream(propertyFile);
+
         try {
             testProperties.load(in);
 
-            apiKeyRaw = testProperties
-                    .getProperty("KickfolioServiceTest.apiKeyRaw");
+            apiKeyRaw = testProperties.getProperty("Appio.apiKeyRaw");
             byte[] encodedBytes = Base64.encodeBase64(apiKeyRaw.getBytes());
-            System.out.println("Base64 apiKeyRaw: " + new String(encodedBytes));
+            apiKey = new String(encodedBytes);
 
-            apiKey = testProperties.getProperty("KickfolioServiceTest.apiKey");
-            System.out.println("apiKey: " + apiKey);
+            appName = testProperties.getProperty("Appio.appName");
+            badKey = testProperties.getProperty("Appio.badKey");
+            badName = testProperties.getProperty("Appio.badName");
+            filePath = testProperties.getProperty("Appio.filePath");
+            fpApiKey = testProperties.getProperty("Filepicker.apiKey");
 
-            appName = testProperties
-                    .getProperty("KickfolioServiceTest.appName");
-            badKey = testProperties.getProperty("KickfolioServiceTest.badKey");
-            badName = testProperties
-                    .getProperty("KickfolioServiceTest.badName");
-            filePath = testProperties
-                    .getProperty("KickfolioServiceTest.filePath");
-            fpApiKey = testProperties
-                    .getProperty("KickfolioServiceTest.fpApiKey");
+            bucketName = testProperties.getProperty("S3.bucketName");
+            keyName = testProperties.getProperty("S3.keyName");
+            uploadFile = testProperties.getProperty("S3.uploadFile");
 
         } catch (IOException e) {
             fail();
-        }
-    }
-
-    // Utility to delete apps after test cases
-    public void deleteApp(String appId, String apiKey) {
-        DefaultHttpClient httpClient = new DefaultHttpClient();
-        HttpHost httpHost = new HttpHost("kickfolio.com", 443, "https");
-        HttpDelete httpDelete = new HttpDelete("/api/apps" + "/" + appId);
-
-        String kickfolioAuth = "Basic " + apiKey;
-        httpDelete.addHeader("Authorization", kickfolioAuth);
-        httpDelete.addHeader("Content-Type", "application/json");
-
-        try {
-            httpClient.execute(httpHost, httpDelete);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                httpClient.getConnectionManager().shutdown();
-            } catch (Exception ignore) {
-            }
         }
     }
 
@@ -108,7 +87,7 @@ public class KickfolioServiceTest {
             assertEquals(uid.toString().equals(testAppObject.getId()), true);
 
             // Cleanup: delete the app object
-            deleteApp(testAppObject.getId(), apiKey);
+            testService.deleteApp(testAppObject.getId(), apiKey);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -150,7 +129,7 @@ public class KickfolioServiceTest {
             assertEquals(testAppObject.getName(), appName);
 
             // Cleanup: delete the app
-            deleteApp(testAppObject.getId(), apiKey);
+            testService.deleteApp(testAppObject.getId(), apiKey);
 
         } catch (Exception e) {
             fail(e.getMessage());
@@ -184,9 +163,7 @@ public class KickfolioServiceTest {
     }
 
     @Test
-    public void addVersion() {
-
-        // KickfolioVersionObject result = null;
+    public void addVersionFilepicker() {
         AppioService testService = new AppioService();
 
         try {
@@ -194,7 +171,7 @@ public class KickfolioServiceTest {
             FilepickerService filepicker = new FilepickerService();
             String fileUrl = filepicker.getUploadURL(filePath, fpApiKey);
 
-            // Create a new Kickfolio app
+            // Create a new App.io app
             AppioAppObject testAppObject = testService
                     .createApp(appName, apiKey);
 
@@ -208,7 +185,39 @@ public class KickfolioServiceTest {
             assertEquals(testAppObject.getVersion_ids()[0], testVersionObject.getId());
 
             // Cleanup: delete the app object
-            deleteApp(testAppObject.getId(), apiKey);
+            testService.deleteApp(testAppObject.getId(), apiKey);
+
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void addVersionS3() {
+        AppioService testService = new AppioService();
+
+        try {
+            // Upload new bits via Amazon S3
+            S3Service s3service = new S3Service();
+            String fileUrl = s3service
+                    .getUploadUrl(bucketName, keyName, uploadFile);
+
+            // Create a new App.io app
+            AppioAppObject testAppObject = testService
+                    .createApp(appName, apiKey);
+
+            // Add a new version
+            AppioVersionObject testVersionObject = testService
+                    .addVersion(testAppObject.getId(), fileUrl, apiKey);
+
+            // Get app info and check for new version id
+            testAppObject = testService.findApp(appName, apiKey);
+
+            assertEquals(testAppObject.getId(), testVersionObject.getApp_id());
+            assertEquals(testAppObject.getVersion_ids()[0], testVersionObject.getId());
+
+            // Cleanup: delete the app object
+            testService.deleteApp(testAppObject.getId(), apiKey);
 
         } catch (Exception e) {
             fail(e.getMessage());

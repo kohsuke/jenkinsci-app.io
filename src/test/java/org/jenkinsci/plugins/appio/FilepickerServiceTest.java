@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.kickfolio;
+package org.jenkinsci.plugins.appio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -8,14 +8,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.jenkinsci.plugins.appio.FilepickerService;
+import org.jenkinsci.plugins.appio.service.FilepickerService;
 import org.junit.Test;
 
 public class FilepickerServiceTest {
-    private String filePath = "/Users/markprichard/Documents/Kickfolio/StockFish.zip";
-    private String apiKey = "AM5ozphAqSNKD6vhNfBivz";
-    private String badPath = "/Users/markprichard/foo";
-    private String badKey = "foo";
+
+    // Test properties loaded via getClassLoader().getResourceAsStream()
+    private String propertyPackage = ("org/jenkinsci/plugins/appio/");
+    private String propertyFile = propertyPackage + "test.properties";
+
+    private String filePath = null;
+    private String apiKey = null;
+    private String badPath = null;
+    private String badKey = null;
 
     private final String urlPrefix = "https://www.filepicker.io/api/file/";
 
@@ -24,26 +29,21 @@ public class FilepickerServiceTest {
     public FilepickerServiceTest() {
         super();
 
-        // Get test properties from classpath
         loadTestProperties();
     }
 
     // Utility to load test properties
     public void loadTestProperties() {
-        InputStream in = this
-                .getClass()
-                .getClassLoader()
-                .getResourceAsStream("org/jenkinsci/plugins/kickfolio/test.properties");
+        InputStream in = this.getClass().getClassLoader()
+                .getResourceAsStream(propertyFile);
         try {
             testProperties.load(in);
 
-            filePath = testProperties
-                    .getProperty("FilepickerServiceTest.filePath");
-            badPath = testProperties
-                    .getProperty("FilepickerServiceTest.badPath");
+            filePath = testProperties.getProperty("Filepicker.filePath");
+            badPath = testProperties.getProperty("Filepicker.badPath");
 
-            apiKey = testProperties.getProperty("FilepickerServiceTest.apiKey");
-            badKey = testProperties.getProperty("FilepickerServiceTest.badKey");
+            apiKey = testProperties.getProperty("Filepicker.apiKey");
+            badKey = testProperties.getProperty("Filepicker.badKey");
 
         } catch (IOException e) {
             fail();

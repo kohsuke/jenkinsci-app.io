@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.appio;
+package org.jenkinsci.plugins.appio.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
-public class S3UploadService implements Serializable {
+public class S3Service implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Logger logger = null;

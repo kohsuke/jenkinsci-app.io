@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.appio;
+package org.jenkinsci.plugins.appio.service;
 
 import java.io.Serializable;
 import java.util.Arrays;
