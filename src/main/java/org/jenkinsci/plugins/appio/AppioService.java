@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -30,6 +31,7 @@ public class AppioService implements Serializable {
     private final HttpPost httpPost = new HttpPost("/api/apps");
     private final HttpPost httpPostVersions = new HttpPost("/api/versions");
     private final HttpGet httpGet = new HttpGet("/api/apps");
+
     private final String appio_v1 = "application/vnd.app.io+json;version=1";
 
     private Logger logger = null;
@@ -100,6 +102,28 @@ public class AppioService implements Serializable {
         return theAppObject;
     }
 
+    public void deleteApp(String appId, String apiKey) {
+        DefaultHttpClient httpClient = new DefaultHttpClient();
+        HttpDelete httpDelete = new HttpDelete("/api/apps" + "/" + appId);
+
+        // App.io Authorization and Content-Type headers
+        String appioAuth = "Basic " + apiKey;
+
+        httpDelete.addHeader("Authorization", appioAuth);
+        httpDelete.addHeader("Accept", appio_v1);
+
+        try {
+            httpClient.execute(httpHost, httpDelete);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                httpClient.getConnectionManager().shutdown();
+            } catch (Exception ignore) {
+            }
+        }
+    }
+
     public AppioAppObject findApp(String appName, String apiKey) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
@@ -165,7 +189,7 @@ public class AppioService implements Serializable {
                     .execute(httpHost, httpPostVersions);
 
             String jsonAppioVersion = handler.handleResponse(response);
-            logDebug("AppioService.createApp() Response: " + jsonAppioVersion);
+            logDebug("AppioService.addVersion() Response: " + jsonAppioVersion);
             newVersion = new Gson()
                     .fromJson(jsonAppioVersion, AppioVersion.class);
 
