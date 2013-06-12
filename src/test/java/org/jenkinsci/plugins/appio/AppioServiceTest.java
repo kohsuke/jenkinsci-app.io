@@ -23,13 +23,13 @@ public class AppioServiceTest {
 	private String propertyPackage = ("org/jenkinsci/plugins/appio/");
 	private String propertyFile = propertyPackage + "test.properties";
 
-	// KickfolioService test variables
+	// AppioService test variables
 	private String apiKeyUnencoded = null;
 	private String apiKey = null;
 	private String appName = null;
 	private String badKey = null;
 	private String badName = null;
-
+	
 	// FilepickerService test variables
 	private String filePath = null;
 	private String fpApiKey = null;
@@ -73,7 +73,7 @@ public class AppioServiceTest {
 			bucketName = testProperties.getProperty("S3.bucketName");
 			keyName = testProperties.getProperty("S3.keyName");
 			uploadFile = testProperties.getProperty("S3.uploadFile");
-
+			
 		} catch (IOException e) {
 			fail();
 		}
