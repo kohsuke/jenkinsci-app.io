@@ -78,10 +78,10 @@ public class AppioRecorder extends Recorder {
 		// Zip <build>.app package for upload to S3
 		String zippedPath = zipPath.readToString() + ".zip";
 		listener.getLogger().println("Creating zip file: " + zippedPath);
-
+		ZipService zipService = new ZipService();
+		
 		try {
 			// App.io expects the containing folder
-			ZipService zipService = new ZipService();
 			zipService.zipFile(zipPath.readToString(), zippedPath, false);
 		} catch (IOException e) {
 			listener.getLogger().println(e.getMessage());
