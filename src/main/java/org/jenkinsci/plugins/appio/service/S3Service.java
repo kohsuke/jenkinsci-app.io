@@ -59,7 +59,7 @@ public class S3Service implements Serializable {
             logDebug("Error Message: " + ace.getMessage());
             return null;
         } catch (IOException ioe) {
-            logDebug("Could not read AWS credentials");
+            logDebug("IOException");
             return null;
         }
 
