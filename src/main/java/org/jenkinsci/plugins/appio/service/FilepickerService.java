@@ -17,6 +17,10 @@ import org.jenkinsci.plugins.appio.model.Filepicker;
 
 import com.google.gson.Gson;
 
+/**
+ * @author markprichard
+ *
+ */
 public class FilepickerService implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -44,6 +48,11 @@ public class FilepickerService implements Serializable {
         }
     }
 
+    /**
+     * @param filePath
+     * @return
+     * @throws Exception
+     */
     public String getUploadURL(String filePath) throws Exception {
         Filepicker filepicker = null;
         DefaultHttpClient httpClient = new DefaultHttpClient();

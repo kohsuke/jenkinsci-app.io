@@ -227,7 +227,7 @@ public class AppioServiceTest {
 
 			// Cleanup: delete the app object
 			Thread.sleep(5000);
-			testService.deleteApp(testAppObject.getId());
+			//testService.deleteApp(testAppObject.getId());
 
 		} catch (Exception e) {
 			fail(e.getMessage());

@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.jenkinsci.plugins.appio.service.Zipper;
+import org.jenkinsci.plugins.appio.service.ZipService;
 import org.junit.Test;
 
-public class ZipperTest {
+public class ZipServiceTest {
 
 	// Test properties loaded via getClassLoader().getResourceAsStream()
 	private String propertyPackage = ("org/jenkinsci/plugins/appio/");
@@ -20,7 +20,7 @@ public class ZipperTest {
 	
 	private Properties testProperties = new Properties();
 
-	public ZipperTest() {
+	public ZipServiceTest() {
 		super();
 		loadTestProperties();
 	}
@@ -43,7 +43,12 @@ public class ZipperTest {
 	
 	@Test
 	public void zipAppFile() {
-		Zipper zipper = new Zipper(unzippedPath);
-		zipper.zipIt(zippedPath);
+		ZipService zipService = new ZipService();
+		try {
+			// App.io expects the containing folder
+			zipService.zipFile(unzippedPath, zippedPath, false);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }

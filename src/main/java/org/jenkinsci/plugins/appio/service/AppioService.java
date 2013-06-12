@@ -24,6 +24,10 @@ import org.jenkinsci.plugins.appio.model.AppioVersionObject;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+/**
+ * @author markprichard
+ *
+ */
 public class AppioService implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -58,6 +62,11 @@ public class AppioService implements Serializable {
 		}
 	}
 
+	/**
+	 * @param appName
+	 * @return
+	 * @throws Exception
+	 */
 	public AppioAppObject createApp(String appName) throws Exception {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		ResponseHandler<String> handler = new BasicResponseHandler();
@@ -108,6 +117,9 @@ public class AppioService implements Serializable {
 		return theAppObject;
 	}
 
+	/**
+	 * @param appId
+	 */
 	public void deleteApp(String appId) {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		HttpDelete httpDelete = new HttpDelete("/api/apps" + "/" + appId);
@@ -130,6 +142,11 @@ public class AppioService implements Serializable {
 		}
 	}
 
+	/**
+	 * @param appName
+	 * @return
+	 * @throws Exception
+	 */
 	public AppioAppObject findApp(String appName) throws Exception {
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		ResponseHandler<String> handler = new BasicResponseHandler();
@@ -169,6 +186,12 @@ public class AppioService implements Serializable {
 		return theApp;
 	}
 
+	/**
+	 * @param appId
+	 * @param urlUpload
+	 * @return
+	 * @throws Exception
+	 */
 	public AppioVersionObject addVersion(String appId, String urlUpload)
 			throws Exception {
 		DefaultHttpClient httpClient = new DefaultHttpClient();

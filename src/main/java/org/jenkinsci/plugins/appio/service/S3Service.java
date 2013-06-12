@@ -11,6 +11,10 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+/**
+ * @author markprichard
+ *
+ */
 public class S3Service implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +42,12 @@ public class S3Service implements Serializable {
         }
     }
 
+    /**
+     * @param bucketName
+     * @param keyName
+     * @param uploadFile
+     * @return
+     */
     public String getUploadUrl(String bucketName, String keyName, String uploadFile) {
 
         try {
