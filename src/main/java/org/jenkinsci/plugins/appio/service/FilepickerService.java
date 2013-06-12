@@ -21,8 +21,14 @@ public class FilepickerService implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Logger logger = null;
+    private String apiKey = null;
+    
+    public FilepickerService(String apiKey) {
+		super();
+		this.apiKey = apiKey;
+	}
 
-    public void setLogger(Logger logger) {
+	public void setLogger(Logger logger) {
         this.logger = logger;
     }
 
@@ -38,7 +44,7 @@ public class FilepickerService implements Serializable {
         }
     }
 
-    public String getUploadURL(String filePath, String apiKey) throws Exception {
+    public String getUploadURL(String filePath) throws Exception {
         Filepicker filepicker = null;
         DefaultHttpClient httpClient = new DefaultHttpClient();
 

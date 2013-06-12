@@ -172,8 +172,8 @@ public class AppioServiceTest {
 
         try {
             // Upload new bits via Filepicker
-            FilepickerService filepicker = new FilepickerService();
-            String fileUrl = filepicker.getUploadURL(filePath, fpApiKey);
+            FilepickerService filepicker = new FilepickerService(fpApiKey);
+            String fileUrl = filepicker.getUploadURL(filePath);
 
             // Create a new App.io app
             AppioAppObject testAppObject = testService

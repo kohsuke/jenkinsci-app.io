@@ -52,10 +52,10 @@ public class FilepickerServiceTest {
 
     @Test
     public void getUploadURL() {
-        FilepickerService testService = new FilepickerService();
+        FilepickerService testService = new FilepickerService(apiKey);
         String testResult = null;
         try {
-            testResult = testService.getUploadURL(filePath, apiKey);
+            testResult = testService.getUploadURL(filePath);
         } catch (Exception e) {
             fail(e.getMessage());
         }
@@ -64,10 +64,10 @@ public class FilepickerServiceTest {
 
     @Test
     public void getUploadURLBadPath() {
-        FilepickerService testService = new FilepickerService();
+        FilepickerService testService = new FilepickerService(apiKey);
         String testResult = null;
         try {
-            testResult = testService.getUploadURL(badPath, apiKey);
+            testResult = testService.getUploadURL(badPath);
         } catch (Exception e) {
             assertTrue(e.getMessage(), true);
             assertEquals(e.getMessage(), badPath
@@ -78,10 +78,10 @@ public class FilepickerServiceTest {
 
     @Test
     public void getUploadURLBadKey() {
-        FilepickerService testService = new FilepickerService();
+        FilepickerService testService = new FilepickerService(badKey);
         String testResult = null;
         try {
-            testResult = testService.getUploadURL(filePath, badKey);
+            testResult = testService.getUploadURL(filePath);
         } catch (Exception e) {
             assertTrue(e.getMessage(), true);
         }
