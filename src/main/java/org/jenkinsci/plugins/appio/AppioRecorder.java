@@ -78,46 +78,48 @@ public class AppioRecorder extends Recorder {
 		// Zip <build>.app package for upload to S3
 		String zippedPath = zipPath.readToString() + ".zip";
 		listener.getLogger().println("Creating zip file: " + zippedPath);
-		ZipService zipService = new ZipService();
+
 		try {
 			// App.io expects the containing folder
+			ZipService zipService = new ZipService();
 			zipService.zipFile(zipPath.readToString(), zippedPath, false);
 		} catch (IOException e) {
-			e.printStackTrace();
+			listener.getLogger().println(e.getMessage());
 		}
-		
+
 		// Upload <build>.app.zip to S3 bucket
 		S3Service s3service = new S3Service(x.getS3AccessKey(), x
 				.getS3SecretKey().getPlainText());
-		listener.getLogger().println("Uploading to S3 bucket: " + x.getS3Bucket());
-		String fileUrl = s3service.getUploadUrl(x.getS3Bucket(), "app",
+		listener.getLogger().println(
+				"Uploading to S3 bucket: " + x.getS3Bucket());
+		String fileUrl = s3service.getUploadUrl(x.getS3Bucket(), appName,
 				zippedPath);
 
-		// Check if app already exists on App.io
-		AppioAppObject appObject = null;
-		AppioService appioService = new AppioService(x.getApiKey()
-				.getPlainText());
-
-		// Create new App.io app if necessary
-		if (appObject.getId().isEmpty()) {
-			listener.getLogger().println("Creating new App.io application");
-			try {
-				appObject = appioService.createApp("app");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		// Add new version pointing to S3 URL
-		listener.getLogger().println("Adding new version");
+		// Create new app/version on App.io
 		try {
+			// Check if app already exists on App.io
+			AppioAppObject appObject = null;
+			AppioService appioService = new AppioService(x.getApiKey()
+					.getPlainText());
+			appObject = appioService.findApp(appName);
+
+			// Create new App.io app if necessary
+			if (appObject.getId().isEmpty()) {
+				listener.getLogger().println("Creating new App.io application");
+				appObject = appioService.createApp(appName);
+			}
+
+			// Add new version pointing to S3 URL
+			listener.getLogger().println("Adding new version");
 			AppioVersionObject versionObject = appioService.addVersion(
 					appObject.getId(), fileUrl);
+			listener.getLogger().println(
+					"App.io URL: " + "https://app.io/"
+							+ appObject.getPublic_key());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		listener.getLogger().println("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
 		return true;
 	}
 

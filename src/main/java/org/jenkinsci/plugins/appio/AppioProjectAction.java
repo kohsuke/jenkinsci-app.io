@@ -14,7 +14,7 @@ public class AppioProjectAction implements ProminentProjectAction {
     }
 
     public String getDisplayName() {
-        return "Running App";
+        return "App.io Simulator";
     }
 
     public String getUrlName() {

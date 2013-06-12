@@ -42,7 +42,7 @@ public class ZipServiceTest {
 	}	
 	
 	@Test
-	public void zipAppFile() {
+	public void zipFile() {
 		ZipService zipService = new ZipService();
 		try {
 			// App.io expects the containing folder
