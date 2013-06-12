@@ -35,8 +35,14 @@ public class AppioService implements Serializable {
     private final String appio_v1 = "application/vnd.app.io+json;version=1";
 
     private Logger logger = null;
+    private String apiKey = null;
 
-    public void setLogger(Logger logger) {
+    public AppioService(String apiKey) {
+		super();
+		this.apiKey = apiKey;
+	}
+
+	public void setLogger(Logger logger) {
         this.logger = logger;
     }
 
@@ -52,7 +58,7 @@ public class AppioService implements Serializable {
         }
     }
 
-    public AppioAppObject createApp(String appName, String apiKey) throws Exception {
+    public AppioAppObject createApp(String appName) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
         AppioAppObject theAppObject = new AppioAppObject();
@@ -102,7 +108,7 @@ public class AppioService implements Serializable {
         return theAppObject;
     }
 
-    public void deleteApp(String appId, String apiKey) {
+    public void deleteApp(String appId) {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         HttpDelete httpDelete = new HttpDelete("/api/apps" + "/" + appId);
 
@@ -124,7 +130,7 @@ public class AppioService implements Serializable {
         }
     }
 
-    public AppioAppObject findApp(String appName, String apiKey) throws Exception {
+    public AppioAppObject findApp(String appName) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
         AppioAppObject theApp = new AppioAppObject();
@@ -163,7 +169,7 @@ public class AppioService implements Serializable {
         return theApp;
     }
 
-    public AppioVersionObject addVersion(String appId, String urlUpload, String apiKey) throws Exception {
+    public AppioVersionObject addVersion(String appId, String urlUpload) throws Exception {
         DefaultHttpClient httpClient = new DefaultHttpClient();
         ResponseHandler<String> handler = new BasicResponseHandler();
         AppioVersion newVersion = new AppioVersion();
