@@ -64,7 +64,7 @@ public class AppioService implements Serializable {
 
 	/**
 	 * @param appName
-	 * @return
+	 * @return AppioAppObject (org.jenkinsci.plugins.appio.model.AppioAppObject)
 	 * @throws Exception
 	 */
 	public AppioAppObject createApp(String appName) throws Exception {
@@ -131,6 +131,7 @@ public class AppioService implements Serializable {
 		httpDelete.addHeader("Accept", appio_v1);
 
 		try {
+			logDebug("AppioService.deleteApp(): deleting app id " + appId);
 			httpClient.execute(httpHost, httpDelete);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -141,7 +142,7 @@ public class AppioService implements Serializable {
 			}
 		}
 	}
-
+	
 	/**
 	 * @param appName
 	 * @return

@@ -14,24 +14,38 @@ import com.cloudbees.plugins.credentials.BaseCredentials;
 public class AppioCredentials extends BaseCredentials {
 
     private static final long serialVersionUID = 1L;
-    private final Secret filepickerApiKey;
-    private final Secret appioApiKey;
+    //private final Secret filepickerApiKey;
+    private final Secret apiKey;
+    
+    private final String s3AccessKey;
+    private final Secret s3SecretKey;
+    private final String s3Bucket;
 
     @DataBoundConstructor
-    public AppioCredentials(Secret fpApiKey, Secret kfApiKey) {
-        this.filepickerApiKey = fpApiKey;
-        this.appioApiKey = kfApiKey;
+    public AppioCredentials(String s3AccessKey, Secret s3SecretKey, String s3Bucket, Secret apiKey) {
+        this.s3AccessKey = s3AccessKey;
+        this.s3SecretKey = s3SecretKey;
+        this.s3Bucket = s3Bucket;
+        this.apiKey = apiKey;
     }
 
-    public Secret getFilepickerApiKey() {
-        return filepickerApiKey;
-    }
+    public Secret getApiKey() {
+		return apiKey;
+	}
 
-    public Secret getAppioApiKey() {
-        return appioApiKey;
-    }
+	public String getS3AccessKey() {
+		return s3AccessKey;
+	}
 
-    @Extension
+	public Secret getS3SecretKey() {
+		return s3SecretKey;
+	}
+
+	public String getS3Bucket() {
+		return s3Bucket;
+	}
+
+	@Extension
     public static class DescriptorImpl extends CredentialsDescriptor {
         @Override
         public String getDisplayName() {

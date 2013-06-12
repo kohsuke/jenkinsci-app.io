@@ -6,6 +6,8 @@ import hudson.model.ProminentProjectAction;
  * @author Kohsuke Kawaguchi
  */
 public class AppioProjectAction implements ProminentProjectAction {
+	
+	private String appURL = null;
 
     public String getIconFileName() {
         return "setting.png";
@@ -16,6 +18,10 @@ public class AppioProjectAction implements ProminentProjectAction {
     }
 
     public String getUrlName() {
-        return "kickfolio";
+        return appURL;
+    }
+    
+    public void setAppURL(String url) {
+    	this.appURL = url;
     }
 }

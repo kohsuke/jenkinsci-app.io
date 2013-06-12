@@ -69,7 +69,8 @@ public class S3Service implements Serializable {
             return null;
         }
 
-        return new String("https://s3.amazonaws.com/" + bucketName + "/"
-                + keyName);
+        String s3PublicUrl = "https://s3.amazonaws.com/" + bucketName + "/" + keyName;
+        logDebug("S3 public URL: " + s3PublicUrl);
+        return s3PublicUrl;
     }
 }

@@ -33,8 +33,8 @@ public class ZipServiceTest {
 		try {
 			testProperties.load(in);
 			
-			unzippedPath = testProperties.getProperty("Appio.unzippedPath");
-			zippedPath = testProperties.getProperty("Appio.zippedPath");
+			unzippedPath = testProperties.getProperty("Zip.unzippedPath");
+			zippedPath = testProperties.getProperty("Zip.zippedPath");
 
 		} catch (IOException e) {
 			fail();

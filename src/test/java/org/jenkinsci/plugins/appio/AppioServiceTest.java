@@ -31,7 +31,7 @@ public class AppioServiceTest {
 	private String badName = null;
 	
 	// FilepickerService test variables
-	private String filePath = null;
+	private String fpFilePath = null;
 	private String fpApiKey = null;
 
 	// Amazon S3 test variables
@@ -65,7 +65,8 @@ public class AppioServiceTest {
 			appName = testProperties.getProperty("Appio.appName");
 			badKey = testProperties.getProperty("Appio.badKey");
 			badName = testProperties.getProperty("Appio.badName");
-			filePath = testProperties.getProperty("Appio.filePath");
+			
+			fpFilePath = testProperties.getProperty("Filepicker.filePath");
 			fpApiKey = testProperties.getProperty("Filepicker.apiKey");
 
 			accessKey = testProperties.getProperty("S3.accessKey");
@@ -177,7 +178,7 @@ public class AppioServiceTest {
 		try {
 			// Upload new bits via Filepicker
 			FilepickerService filepicker = new FilepickerService(fpApiKey);
-			String fileUrl = filepicker.getUploadURL(filePath);
+			String fileUrl = filepicker.getUploadURL(fpFilePath);
 
 			// Create a new App.io app
 			AppioAppObject testAppObject = testService.createApp(appName);
@@ -227,7 +228,7 @@ public class AppioServiceTest {
 
 			// Cleanup: delete the app object
 			Thread.sleep(5000);
-			//testService.deleteApp(testAppObject.getId());
+			testService.deleteApp(testAppObject.getId());
 
 		} catch (Exception e) {
 			fail(e.getMessage());
