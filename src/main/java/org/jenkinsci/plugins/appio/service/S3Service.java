@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -16,8 +17,14 @@ public class S3Service implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Logger logger = null;
+    private AmazonS3 s3client = null;
+    
+    public S3Service(String accessKey, String secretKey) {
+		super();
+		s3client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
+	}
 
-    public void setLogger(Logger logger) {
+	public void setLogger(Logger logger) {
         this.logger = logger;
     }
 
@@ -36,12 +43,6 @@ public class S3Service implements Serializable {
     public String getUploadUrl(String bucketName, String keyName, String uploadFile) {
 
         try {
-            AmazonS3 s3client = new AmazonS3Client(
-                    new PropertiesCredentials(
-                            this.getClass()
-                                    .getClassLoader()
-                                    .getResourceAsStream("org/jenkinsci/plugins/appio/AwsCredentials.properties")));
-
             File file = new File(uploadFile);
             s3client.putObject(new PutObjectRequest(bucketName, keyName, file)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
@@ -57,9 +58,6 @@ public class S3Service implements Serializable {
         } catch (AmazonClientException ace) {
             logDebug("AmazonClientException");
             logDebug("Error Message: " + ace.getMessage());
-            return null;
-        } catch (IOException ioe) {
-            logDebug("IOException");
             return null;
         }
 

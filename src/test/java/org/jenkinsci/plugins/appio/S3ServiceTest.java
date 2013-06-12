@@ -11,16 +11,14 @@ import java.util.Properties;
 import org.jenkinsci.plugins.appio.service.S3Service;
 import org.junit.Test;
 
-import com.amazonaws.auth.AWSCredentials;
-
 public class S3ServiceTest {
 
 	// Test properties loaded via getClassLoader().getResourceAsStream()
 	private String propertyPackage = ("org/jenkinsci/plugins/appio/");
 	private String propertyFile = propertyPackage + "test.properties";
 
-	AWSCredentials credentials = null;
-
+    private String accessKey = null;
+    private String secretKey = null;
 	private String bucketName = null;
 	private String keyName = null;
 	private String uploadFile = null;
@@ -41,6 +39,8 @@ public class S3ServiceTest {
 		try {
 			testProperties.load(in);
 
+			accessKey = testProperties.getProperty("S3.accessKey");
+            secretKey = testProperties.getProperty("S3.secretKey");
 			bucketName = testProperties.getProperty("S3.bucketName");
 			keyName = testProperties.getProperty("S3.keyName");
 			uploadFile = testProperties.getProperty("S3.uploadFile");
@@ -54,7 +54,7 @@ public class S3ServiceTest {
 
 	@Test
 	public void getUploadUrl() {
-		S3Service s3Service = new S3Service();
+		S3Service s3Service = new S3Service(accessKey, secretKey);
 		String testResult = null;
 
 		try {
@@ -69,7 +69,7 @@ public class S3ServiceTest {
 
 	@Test
 	public void getUploadURLBadPath() {
-		S3Service s3Service = new S3Service();
+		S3Service s3Service = new S3Service(accessKey, secretKey);
 		String testResult = null;
 
 		try {
@@ -82,7 +82,7 @@ public class S3ServiceTest {
 
 	@Test
 	public void getUploadURLBadBucket() {
-		S3Service s3Service = new S3Service();
+		S3Service s3Service = new S3Service(accessKey, secretKey);
 		String testResult = null;
 
 		try {

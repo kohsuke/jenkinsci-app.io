@@ -24,7 +24,7 @@ public class AppioServiceTest {
     private String propertyFile = propertyPackage + "test.properties";
 
     // KickfolioService test variables
-    private String apiKeyRaw = null;
+    private String apiKeyUnencoded = null;
     private String apiKey = null;
     private String appName = null;
     private String badKey = null;
@@ -35,6 +35,8 @@ public class AppioServiceTest {
     private String fpApiKey = null;
 
     // Amazon S3 test variables
+    private String accessKey = null;
+    private String secretKey = null;
     private String bucketName = null;
     private String keyName = null;
     private String uploadFile = null;
@@ -54,8 +56,8 @@ public class AppioServiceTest {
         try {
             testProperties.load(in);
 
-            apiKeyRaw = testProperties.getProperty("Appio.apiKeyRaw");
-            byte[] encodedBytes = Base64.encodeBase64(apiKeyRaw.getBytes());
+            apiKeyUnencoded = testProperties.getProperty("Appio.apiKeyUnencoded");
+            byte[] encodedBytes = Base64.encodeBase64(apiKeyUnencoded.getBytes());
             apiKey = new String(encodedBytes);
 
             appName = testProperties.getProperty("Appio.appName");
@@ -64,6 +66,8 @@ public class AppioServiceTest {
             filePath = testProperties.getProperty("Appio.filePath");
             fpApiKey = testProperties.getProperty("Filepicker.apiKey");
 
+            accessKey = testProperties.getProperty("S3.accessKey");
+            secretKey = testProperties.getProperty("S3.secretKey");
             bucketName = testProperties.getProperty("S3.bucketName");
             keyName = testProperties.getProperty("S3.keyName");
             uploadFile = testProperties.getProperty("S3.uploadFile");
@@ -198,7 +202,7 @@ public class AppioServiceTest {
 
         try {
             // Upload new bits via Amazon S3
-            S3Service s3service = new S3Service();
+            S3Service s3service = new S3Service(accessKey, secretKey);
             String fileUrl = s3service
                     .getUploadUrl(bucketName, keyName, uploadFile);
 
