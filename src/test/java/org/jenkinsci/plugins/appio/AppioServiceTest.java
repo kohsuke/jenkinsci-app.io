@@ -115,7 +115,7 @@ public class AppioServiceTest {
 			UUID uid = UUID.fromString(testAppObject.getId());
 			assertEquals(uid.toString().equals(testAppObject.getId()), true);
 		} catch (Exception e) {
-			assertTrue(e.getMessage(), true);
+			assertTrue("Exception expected: invalid App.io API key", true);
 		}
 	}
 
@@ -167,7 +167,7 @@ public class AppioServiceTest {
 			testAppObject = testService.findApp(appName);
 			assertEquals(testAppObject.getId(), null);
 		} catch (Exception e) {
-			assertTrue(e.getMessage(), true);
+			assertTrue("Exception expected: invalid App.io API key", true);
 		}
 	}
 

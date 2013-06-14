@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Action;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
@@ -12,6 +13,8 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -27,9 +30,10 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 
 /**
  * @author Kohsuke Kawaguchi
+ * @author markprichard
  */
 public class AppioRecorder extends Recorder {
-	private String zipFile;
+	private String appFile;
 	private String appName;
 
 	public String getAppName() {
@@ -42,13 +46,13 @@ public class AppioRecorder extends Recorder {
 	}
 
 	@DataBoundConstructor
-	public AppioRecorder(String zipFile, String appName) {
-		this.zipFile = zipFile;
+	public AppioRecorder(String appFile, String appName) {
+		this.appFile = appFile;
 		this.appName = appName;
 	}
 
 	public String getAppFile() {
-		return zipFile;
+		return appFile;
 	}
 
 	public BuildStepMonitor getRequiredMonitorService() {
@@ -56,68 +60,88 @@ public class AppioRecorder extends Recorder {
 	}
 
 	@Override
-	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher,
-			BuildListener listener) throws InterruptedException, IOException {
+	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+			throws InterruptedException, IOException {
 
-		FilePath zipPath = build.getWorkspace().child(zipFile);
-		listener.getLogger().println("Deploying to App.io: " + zipPath);
-		// InputStream is = zipPath.read();
+		if (build.getResult().isWorseOrEqualTo(Result.FAILURE))
+			return false;
 
-		List<AppioCredentials> c = CredentialsProvider.lookupCredentials(
-				AppioCredentials.class, build.getProject());
-		AppioCredentials x = c.get(0);
+		FilePath appPath = build.getWorkspace().child(appFile);
+		listener.getLogger().println("Deploying to App.io: " + appPath);
 
-		listener.getLogger().println(
-				"App.io API Key: " + x.getApiKey().getPlainText());
-		byte[] encodedBytes = Base64.encodeBase64(x.getApiKey().getPlainText()
-				.getBytes());
+		List<AppioCredentials> credentialsList = CredentialsProvider.lookupCredentials(AppioCredentials.class,
+				build.getProject());
+		AppioCredentials appioCredentials = credentialsList.get(0);
+
+		byte[] encodedBytes = Base64.encodeBase64(appioCredentials.getApiKey().getPlainText().getBytes());
 		String appioApiKeyBase64 = new String(encodedBytes);
-		listener.getLogger().println(
-				"App.io API key (base64): " + appioApiKeyBase64);
 
 		// Zip <build>.app package for upload to S3
-		String zippedPath = zipPath.readToString() + ".zip";
-		listener.getLogger().println("Creating zip file: " + zippedPath);
-		ZipService zipService = new ZipService();
-		
+		String unzippedPath = appPath.getRemote();
+		String zippedPath = unzippedPath + ".zip";
+
 		try {
-			// App.io expects the containing folder
-			zipService.zipFile(zipPath.readToString(), zippedPath, false);
-		} catch (IOException e) {
-			listener.getLogger().println(e.getMessage());
+			File zipFile = new File(zippedPath);
+			if (!zipFile.exists()) {
+				listener.getLogger().println("Created zip file: " + zippedPath);
+				zipFile.createNewFile();
+			}
+			FileOutputStream fop = new FileOutputStream(zipFile);
+			appPath.zip(fop);
+		} catch (Exception e) {
+			listener.getLogger().println("Exception creating zip file: " + e.getMessage());
+			return false;
 		}
 
-		// Upload <build>.app.zip to S3 bucket
-		S3Service s3service = new S3Service(x.getS3AccessKey(), x
-				.getS3SecretKey().getPlainText());
-		listener.getLogger().println(
-				"Uploading to S3 bucket: " + x.getS3Bucket());
-		String fileUrl = s3service.getUploadUrl(x.getS3Bucket(), appName,
-				zippedPath);
+		// ZipService zipService = new ZipService();
 
+		// try {
+		// App.io expects the containing folder: param #3 = false
+		// listener.getLogger().println("Creating zip file: " + zippedPath);
+		// zipService.zipFile(unzippedPath, zippedPath, false);
+		// } catch (IOException e) {
+		// listener.getLogger().println("IOException: " + e.getMessage());
+		// return false;
+		// }
+
+		// Upload <build>.app.zip to S3 bucket
+		String s3Url = null;
+		try {
+			S3Service s3service = new S3Service(appioCredentials.getS3AccessKey(), appioCredentials.getS3SecretKey()
+					.getPlainText());
+			listener.getLogger().println("Uploading to S3 bucket: " + appioCredentials.getS3Bucket());
+			s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName, zippedPath);
+			listener.getLogger().println("S3 Public URL: " + s3Url);
+		} catch (Exception e) {
+			listener.getLogger().println("Exception while uploading to S3: " + e.getMessage());
+		}
 		// Create new app/version on App.io
 		try {
 			// Check if app already exists on App.io
 			AppioAppObject appObject = null;
-			AppioService appioService = new AppioService(x.getApiKey()
-					.getPlainText());
+			AppioService appioService = new AppioService(appioApiKeyBase64);
+
+			listener.getLogger().println("Checking for App.io app: " + appName);
 			appObject = appioService.findApp(appName);
 
 			// Create new App.io app if necessary
-			if (appObject.getId().isEmpty()) {
+			if (appObject.getId() == null) {
 				listener.getLogger().println("Creating new App.io application");
 				appObject = appioService.createApp(appName);
 			}
+			listener.getLogger().println("App.io application id: " + appObject.getId());
 
 			// Add new version pointing to S3 URL
 			listener.getLogger().println("Adding new version");
-			AppioVersionObject versionObject = appioService.addVersion(
-					appObject.getId(), fileUrl);
-			listener.getLogger().println(
-					"App.io URL: " + "https://app.io/"
-							+ appObject.getPublic_key());
+			AppioVersionObject versionObject = appioService.addVersion(appObject.getId(), s3Url);
+			listener.getLogger().println("App.io version id: " + versionObject.getId());
+
+			// Get the public App.io link for the app
+			listener.getLogger().println("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
+			build.getProject().getAction(AppioProjectAction.class)
+					.setAppURL("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
 		} catch (Exception e) {
-			e.printStackTrace();
+			listener.getLogger().println("Error uploading app/version to App.io: " + e.getMessage());
 		}
 
 		return true;
@@ -125,6 +149,11 @@ public class AppioRecorder extends Recorder {
 
 	@Extension
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
+		// Validation check
+		// public FormValidation doCheckAppFile(@QueryParameter String value)
+		// {É}
+
 		@Override
 		public boolean isApplicable(Class<? extends AbstractProject> jobType) {
 			return true;

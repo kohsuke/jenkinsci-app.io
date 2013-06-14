@@ -24,4 +24,8 @@ public class AppioProjectAction implements ProminentProjectAction {
     public void setAppURL(String url) {
     	this.appURL = url;
     }
+
+	public String getAppURL() {
+		return appURL;
+	}
 }

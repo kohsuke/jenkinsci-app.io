@@ -14,9 +14,11 @@ import com.cloudbees.plugins.credentials.BaseCredentials;
 public class AppioCredentials extends BaseCredentials {
 
     private static final long serialVersionUID = 1L;
-    //private final Secret filepickerApiKey;
+
+    // App.io API Key
     private final Secret apiKey;
     
+    // AWS Credentials and S3 Bucket
     private final String s3AccessKey;
     private final Secret s3SecretKey;
     private final String s3Bucket;

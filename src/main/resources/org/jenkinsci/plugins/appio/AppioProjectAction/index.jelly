@@ -1,10 +1,9 @@
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
-  <l:layout title="Kickfolio">
+  <l:layout title="App.io Simulator View">
     <l:main-panel>
       <h1>Running App</h1>
-
       <div>
-        ${it.foo(1,2)}
+        ${it.appURL}
       </div>
     </l:main-panel>
   </l:layout>

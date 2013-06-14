@@ -75,7 +75,6 @@ public class AppioService implements Serializable {
 		try {
 			// App.io Authorization and Content-Type headers
 			String appioAuth = "Basic " + apiKey;
-
 			httpPost.addHeader("Authorization", appioAuth);
 			httpPost.addHeader("Content-Type", "application/json");
 			httpPost.addHeader("Accept", appio_v1);
@@ -126,7 +125,6 @@ public class AppioService implements Serializable {
 
 		// App.io Authorization and Content-Type headers
 		String appioAuth = "Basic " + apiKey;
-
 		httpDelete.addHeader("Authorization", appioAuth);
 		httpDelete.addHeader("Accept", appio_v1);
 
@@ -159,6 +157,7 @@ public class AppioService implements Serializable {
 			httpGet.addHeader("Authorization", appioAuth);
 			httpGet.addHeader("Accept", appio_v1);
 
+			logDebug("AppioService.findApp() Request");
 			HttpResponse response = httpClient.execute(httpHost, httpGet);
 			String jsonAppioApps = handler.handleResponse(response);
 			logDebug("AppioService.findApp() Response: " + jsonAppioApps);
@@ -172,11 +171,14 @@ public class AppioService implements Serializable {
 			while ((iterator.hasNext()) && (!foundAppName)) {
 				AppioAppObject thisApp = iterator.next();
 				if (thisApp.getName().equals(appName)) {
+					logDebug("Found app: " + appName);
 					theApp = thisApp;
 				}
 			}
+			logDebug("App not found: " + appName);
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw e;
 		} finally {
 			try {

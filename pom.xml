@@ -7,12 +7,16 @@
 		<artifactId>plugin</artifactId>
 		<version>1.480.3</version><!-- which version of Jenkins is this plugin 
 			built against? -->
+		<relativePath></relativePath>
 	</parent>
 
 	<groupId>org.jenkins-ci.plugins</groupId>
 	<artifactId>appio</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>hpi</packaging>
+	<name>Jenkins App.io Plugin</name>
+	<description>Integrates Jenkins with App.io for online iOS simulator support</description>
+	<url></url>
 
 	<developers>
 		<developer>
@@ -27,6 +31,24 @@
 			<groupId>org.jenkins-ci.plugins</groupId>
 			<artifactId>credentials</artifactId>
 			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>xcode-plugin</artifactId>
+			<version>1.3.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git</artifactId>
+			<version>1.4.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>git-client</artifactId>
+			<version>1.0.7</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
