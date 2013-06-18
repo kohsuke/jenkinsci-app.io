@@ -82,58 +82,63 @@ public class AppioRecorder extends Recorder {
 		// Zip <build>.app package for upload to S3
         File zip = File.createTempFile("appio","zip");
         // = appPath.getParent().child(appPath.getName() + ".zip");
-		listener.getLogger().println("Creating zipped package: " + zip);
+		listener.getLogger().println("Creating zipped package");
 
-		try {
-            appPath.zip(new FilePath(zip));
-		} catch (IOException e) {
-            throw new IOException2("Exception creating "+zip,e);
-		}
+        try {
+            try {
+                appPath.zip(new FilePath(zip));
+            } catch (IOException e) {
+                throw new IOException2("Exception creating "+zip,e);
+            }
 
 
-		// Upload <build>.app.zip to S3 bucket
-		String s3Url = null;
-		try {
-			S3Service s3service = new S3Service(appioCredentials.getS3AccessKey(), appioCredentials.getS3SecretKey()
-					.getPlainText());
-			listener.getLogger().println("Uploading to S3 bucket: " + appioCredentials.getS3Bucket());
-			//s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName, zippedPath);
-			s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName + build.getNumber(), zip);
-			listener.getLogger().println("S3 Public URL: " + s3Url);
-		} catch (Exception e) {
-			listener.getLogger().println("Exception while uploading to S3: " + e.getMessage());
-		}
-		// Create new app/version on App.io
-		try {
-			// Check if app already exists on App.io
-			AppioAppObject appObject = null;
-			AppioService appioService = new AppioService(appioApiKeyBase64);
+            // Upload <build>.app.zip to S3 bucket
+            String s3Url = null;
+            try {
+                S3Service s3service = new S3Service(appioCredentials.getS3AccessKey(), appioCredentials.getS3SecretKey()
+                        .getPlainText());
+                listener.getLogger().println("Uploading to S3 bucket: " + appioCredentials.getS3Bucket());
+                //s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName, zippedPath);
+                s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName + build.getNumber(), zip);
+                listener.getLogger().println("S3 Public URL: " + s3Url);
+            } catch (Exception e) {
+                throw new IOException2("Exception while uploading to S3"+zip,e);
+            }
 
-			listener.getLogger().println("Checking for App.io app: " + appName);
-			appObject = appioService.findApp(appName);
+            // Create new app/version on App.io
+            try {
+                // Check if app already exists on App.io
+                AppioAppObject appObject = null;
+                AppioService appioService = new AppioService(appioApiKeyBase64);
 
-			// Create new App.io app if necessary
-			if (appObject.getId() == null) {
-				listener.getLogger().println("Creating new App.io application");
-				appObject = appioService.createApp(appName);
-			}
-			listener.getLogger().println("App.io application id: " + appObject.getId());
+                listener.getLogger().println("Checking for App.io app: " + appName);
+                appObject = appioService.findApp(appName);
 
-			// Add new version pointing to S3 URL
-			listener.getLogger().println("Adding new version");
-			AppioVersionObject versionObject = appioService.addVersion(appObject.getId(), s3Url);
-			listener.getLogger().println("App.io version id: " + versionObject.getId());
+                // Create new App.io app if necessary
+                if (appObject.getId() == null) {
+                    listener.getLogger().println("Creating new App.io application");
+                    appObject = appioService.createApp(appName);
+                }
+                listener.getLogger().println("App.io application id: " + appObject.getId());
 
-			// Get the public App.io link for the app
-			listener.getLogger().println("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
-			build.getProject().getAction(AppioProjectAction.class)
-					.setAppURL("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
-		} catch (Exception e) {
-            throw new IOException2("Error uploading app/version to App.io",e);
-		}
+                // Add new version pointing to S3 URL
+                listener.getLogger().println("Adding new version");
+                AppioVersionObject versionObject = appioService.addVersion(appObject.getId(), s3Url);
+                listener.getLogger().println("App.io version id: " + versionObject.getId());
 
-		return true;
-	}
+                // Get the public App.io link for the app
+                listener.getLogger().println("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
+                build.getProject().getAction(AppioProjectAction.class)
+                        .setAppURL("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
+            } catch (Exception e) {
+                throw new IOException2("Error uploading app/version to App.io",e);
+            }
+
+            return true;
+        } finally {
+            zip.delete();
+        }
+    }
 
 	@Extension
 	public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
