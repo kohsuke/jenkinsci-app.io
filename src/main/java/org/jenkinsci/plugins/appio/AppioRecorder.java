@@ -2,7 +2,9 @@ package org.jenkinsci.plugins.appio;
 
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.FilePath.FileCallable;
 import hudson.Launcher;
+import hudson.remoting.VirtualChannel;
 import hudson.model.Action;
 import hudson.model.BuildListener;
 import hudson.model.Result;
@@ -23,7 +25,6 @@ import org.jenkinsci.plugins.appio.model.AppioAppObject;
 import org.jenkinsci.plugins.appio.model.AppioVersionObject;
 import org.jenkinsci.plugins.appio.service.AppioService;
 import org.jenkinsci.plugins.appio.service.S3Service;
-import org.jenkinsci.plugins.appio.service.ZipService;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
@@ -59,14 +60,15 @@ public class AppioRecorder extends Recorder {
 		return BuildStepMonitor.NONE;
 	}
 
+	@SuppressWarnings("serial")
 	@Override
-	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+	public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener)
 			throws InterruptedException, IOException {
 
 		if (build.getResult().isWorseOrEqualTo(Result.FAILURE))
 			return false;
 
-		FilePath appPath = build.getWorkspace().child(appFile);
+		final FilePath appPath = build.getWorkspace().child(appFile);
 		listener.getLogger().println("Deploying to App.io: " + appPath);
 
 		List<AppioCredentials> credentialsList = CredentialsProvider.lookupCredentials(AppioCredentials.class,
@@ -77,32 +79,39 @@ public class AppioRecorder extends Recorder {
 		String appioApiKeyBase64 = new String(encodedBytes);
 
 		// Zip <build>.app package for upload to S3
-		String unzippedPath = appPath.getRemote();
-		String zippedPath = unzippedPath + ".zip";
+		final String unzippedPath = appPath.getRemote();
+		final String zippedPath = unzippedPath + ".zip";
+		listener.getLogger().println("Creating zipped package: " + zippedPath);
 
 		try {
-			File zipFile = new File(zippedPath);
-			if (!zipFile.exists()) {
-				listener.getLogger().println("Created zip file: " + zippedPath);
-				zipFile.createNewFile();
-			}
-			FileOutputStream fop = new FileOutputStream(zipFile);
-			appPath.zip(fop);
+
+		// Build Zip file for upload to S3: support Jenkins remoting
+		appPath.act(new FileCallable<Void> () {
+			public Void invoke(File f,VirtualChannel channel) throws IOException, InterruptedException {	
+				File zipFile = new File(zippedPath);
+				if (!zipFile.exists()) {
+					zipFile.createNewFile();
+				}
+				FileOutputStream fop = new FileOutputStream(zipFile);
+				appPath.zip(fop);
+				return null;
+			   }		
+		});
+		
+/*
+		File zipFile = new File(zippedPath);
+		if (!zipFile.exists()) {
+			listener.getLogger().println("Created zip file: " + zippedPath);
+			zipFile.createNewFile();
+		}
+		FileOutputStream fop = new FileOutputStream(zipFile);
+		appPath.zip(fop);
+*/		
 		} catch (Exception e) {
 			listener.getLogger().println("Exception creating zip file: " + e.getMessage());
 			return false;
 		}
 
-		// ZipService zipService = new ZipService();
-
-		// try {
-		// App.io expects the containing folder: param #3 = false
-		// listener.getLogger().println("Creating zip file: " + zippedPath);
-		// zipService.zipFile(unzippedPath, zippedPath, false);
-		// } catch (IOException e) {
-		// listener.getLogger().println("IOException: " + e.getMessage());
-		// return false;
-		// }
 
 		// Upload <build>.app.zip to S3 bucket
 		String s3Url = null;
@@ -110,7 +119,8 @@ public class AppioRecorder extends Recorder {
 			S3Service s3service = new S3Service(appioCredentials.getS3AccessKey(), appioCredentials.getS3SecretKey()
 					.getPlainText());
 			listener.getLogger().println("Uploading to S3 bucket: " + appioCredentials.getS3Bucket());
-			s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName, zippedPath);
+			//s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName, zippedPath);
+			s3Url = s3service.getUploadUrl(appioCredentials.getS3Bucket(), appName + build.getNumber(), zippedPath);
 			listener.getLogger().println("S3 Public URL: " + s3Url);
 		} catch (Exception e) {
 			listener.getLogger().println("Exception while uploading to S3: " + e.getMessage());
