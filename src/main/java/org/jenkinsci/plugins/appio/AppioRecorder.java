@@ -108,7 +108,7 @@ public class AppioRecorder extends Recorder {
 		appPath.zip(fop);
 */		
 		} catch (Exception e) {
-			listener.getLogger().println("Exception creating zip file: " + e.getMessage());
+            e.printStackTrace(listener.error("Exception creating zip file"));
 			return false;
 		}
 
@@ -151,7 +151,8 @@ public class AppioRecorder extends Recorder {
 			build.getProject().getAction(AppioProjectAction.class)
 					.setAppURL("App.io URL: " + "https://app.io/" + appObject.getPublic_key());
 		} catch (Exception e) {
-			listener.getLogger().println("Error uploading app/version to App.io: " + e.getMessage());
+            e.printStackTrace(listener.error("Error uploading app/version to App.io"));
+			return false;
 		}
 
 		return true;
@@ -162,7 +163,7 @@ public class AppioRecorder extends Recorder {
 
 		// Validation check
 		// public FormValidation doCheckAppFile(@QueryParameter String value)
-		// {É}
+		// {ï¿½}
 
 		@Override
 		public boolean isApplicable(Class<? extends AbstractProject> jobType) {
